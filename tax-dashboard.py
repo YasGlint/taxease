@@ -1,13 +1,14 @@
 import pandas as pd
 import streamlit as st
 from sqlalchemy import create_engine, text
+from psycopg2 import OperationalError
+import matplotlib.pyplot as plt
 from datetime import datetime
 
-# Database connections
+
 engine = create_engine("postgresql://postgres:spyder@localhost:5432/records_db")
 engine_dataset = create_engine("postgresql://postgres:spyder@localhost:5432/datasets_db")
 
-# Create Tables (if not exist)
 
 with engine.connect() as connection:
     # Create the 'taxpayers' table
@@ -26,7 +27,6 @@ with engine.connect() as connection:
             tax_category_name VARCHAR(255)
         );
     """))
-
     # Create the 'dates' table
     connection.execute(text("""
         CREATE TABLE IF NOT EXISTS dates (
@@ -38,7 +38,6 @@ with engine.connect() as connection:
             day_of_week INT
         );
     """))
-
     # Create the 'tax_transactions' table
     connection.execute(text("""
         CREATE TABLE IF NOT EXISTS tax_transactions (
@@ -54,8 +53,8 @@ with engine.connect() as connection:
     """))
 
 
-
-# Query records from records_db (taxpayers and tax_transactions)
+#### RECORDS DB
+# Query records from records_db
 def read_taxpayer_data(engine):
     with engine.connect() as connection:
         result = connection.execute(
@@ -78,10 +77,7 @@ def read_specific_taxpayer(taxpayer_name, engine):
     return pd.read_sql_query(result.first()[0], engine)
 
 
-
-
-# Query the database
-
+# Insert records into records_db
 def write_record_taxpayer(taxpayer_name, location, engine):
     with engine.connect() as connection:
         connection.execute(
@@ -96,6 +92,21 @@ def write_tax_transaction(taxpayer_id, tax_category_id, date_id, amount, engine)
             {"taxpayer_id": taxpayer_id, "tax_category_id": tax_category_id, "date_id": date_id, "amount": amount}
         )
 
+
+#### DATASETS DB
+# Write
+def write_dataset(name, dataset, engine):
+    dataset.to_sql('%s' % (name),engine,index=False,if_exists='replace',chunksize=1000)
+
+# Read
+def read_dataset(name, engine):
+    try:
+        dataset = pd.read_sql_table(name, engine)
+    except:
+        dataset = pd.DataFrame([])
+    return dataset
+
+# Query
 def list_datasets(engine):
     with engine.connect() as connection:
         datasets = connection.execute(
@@ -105,22 +116,28 @@ def list_datasets(engine):
 
 
 
-
-
 # Streamlit UI
-st.title('Tax Ease Dashboard')
+st.title('TaxEase Dashboard')
 
 column_1, column_2 = st.columns(2)
 
 with column_1:
     # Save Taxpayer Records
     st.header('Save Taxpayer')
-    taxpayer_name = st.text_input('Enter taxpayer name')
-    location = st.text_input('Enter location')
+    taxpayer_name = st.text_input('Enter tax payer\'s name')
+    location = st.text_input('Enter tax payer\'s location')
     
     if st.button('Save Taxpayer'):
         write_record_taxpayer(taxpayer_name, location, engine)
         st.success(f"Taxpayer **{taxpayer_name}** from **{location}** saved to database.")
+        
+    ### Read tax payer data
+    if st.button('Read Taxpayer'):
+        with engine.connect() as connection:
+            result = connection.execute(
+                text("SELECT * FROM taxpayers")
+            )
+            st.write(pd.read_sql_query(result, engine))
     
     # Save Tax Transaction
     st.header('Save Tax Transaction')
@@ -133,14 +150,39 @@ with column_1:
         write_tax_transaction(taxpayer_id, tax_category_id, date_id, amount, engine)
         st.success(f"Tax transaction for Taxpayer ID **{taxpayer_id}** saved.")
 
+        
 with column_2:
-    # Read Datasets
-    st.header('Read Datasets')
+    st.header('Save datasets')
+    dataset = st.file_uploader('Please upload dataset')
+    if dataset is not None:
+        dataset = pd.read_csv(dataset)
+        dataset_name = st.text_input('Please enter name for dataset')
+        if st.button('Save dataset to database'):
+            # Write to datasets_db
+            write_dataset('%s' % (dataset_name),dataset,engine_dataset)
+            st.info('**%s** saved to database' % (dataset_name))
+
     try:
-        dataset_to_read = st.selectbox('Select dataset to read', [x[0] for x in list_datasets(engine_dataset)])
+        read_title = st.empty()
+        # List datasets_db
+        dataset_to_read = st.selectbox('Select dataset to read',([x[0] for x in list_datasets(engine_dataset)]))
+        read_title.header('Read datasets')
         if st.button('Read dataset'):
-            df = pd.read_sql_table(dataset_to_read, engine_dataset)
+            # Read datasets_db
+            df = read_dataset(dataset_to_read,engine_dataset)
+            st.subheader('Chart')
+            st.line_chart(df['value'])
             st.subheader('Dataframe')
             st.write(df)
+            
+            # # Buttons for different plots
+            # if st.button("Show Line Chart"):
+            #     plots_.plot_line_chart(df)
+
+            # if st.button("Show Bar Chart"):
+            #     plots_.plot_bar_chart(df)
+
+            # if st.button("Show Scatter Plot"):
+            #     plots_.plot_scatter_chart(df)
     except:
         pass
