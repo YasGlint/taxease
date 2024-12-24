@@ -6,9 +6,51 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 
-
+engine = create_engine("postgresql://postgres:spyder@localhost:5432/records_db")
 engine_dataset = create_engine("postgresql://postgres:spyder@localhost:5432/datasets_db")
 
+
+with engine.connect() as connection:
+    # Create the 'taxpayers' table
+    connection.execute(text("""
+        CREATE TABLE IF NOT EXISTS taxpayers (
+            taxpayer_id SERIAL PRIMARY KEY,
+            taxpayer_name VARCHAR(255),
+            location VARCHAR(255)
+        )
+    """))
+    
+    # Create the 'tax_categories' table
+    connection.execute(text("""
+        CREATE TABLE IF NOT EXISTS tax_categories (
+            tax_category_id SERIAL PRIMARY KEY,
+            tax_category_name VARCHAR(255)
+        );
+    """))
+    # Create the 'dates' table
+    connection.execute(text("""
+        CREATE TABLE IF NOT EXISTS dates (
+            date_id SERIAL PRIMARY KEY,
+            date DATE,
+            year INT,
+            month INT,
+            quarter INT,
+            day_of_week INT
+        );
+    """))
+    # Create the 'tax_transactions' table
+    connection.execute(text("""
+        CREATE TABLE IF NOT EXISTS tax_transactions (
+            transaction_id SERIAL PRIMARY KEY,
+            taxpayer_id INT,
+            tax_category_id INT,
+            date_id INT,
+            amount DECIMAL,
+            FOREIGN KEY (taxpayer_id) REFERENCES taxpayers(taxpayer_id),
+            FOREIGN KEY (tax_category_id) REFERENCES tax_categories(tax_category_id),
+            FOREIGN KEY (date_id) REFERENCES dates(date_id)
+        );
+    """))
 
 
 #### RECORDS DB
@@ -75,47 +117,22 @@ def list_datasets(engine):
 
 
 # Streamlit UI
-st.title('TaxEase Dashboard')
+st.set_page_config(
+    page_title="Tax Transactions", 
+    layout="wide",
+)
+st.title('Tax Transactions')
+st.sidebar.header("TaxEase")
+st.sidebar.success("💰  Tax Transactions")
 
-# column_1, column_2 = st.columns(2)
 
-# with column_1:
-st.header('Save datasets')
-dataset = st.file_uploader('Please upload dataset')
-if dataset is not None:
-    dataset = pd.read_csv(dataset)
-    dataset_name = st.text_input('Please enter name for dataset')
-    if st.button('Save dataset to database'):
-        # Write to datasets_db
-        write_dataset('%s' % (dataset_name),dataset,engine_dataset)
-        st.info('**%s** saved to database' % (dataset_name))
+# Save Tax Transaction
+st.header('Save Tax Transaction')
+taxpayer_id = st.number_input('Enter taxpayer ID', min_value=1)
+tax_category_id = st.number_input('Enter tax category ID', min_value=1)
+date_id = st.number_input('Enter date ID', min_value=1)
+amount = st.number_input('Enter transaction amount', min_value=0.01, format="%.2f")
 
-        
-# with column_2:
-st.write()
-try:
-    read_title = st.empty()
-    # List datasets_db
-    dataset_to_read = st.selectbox('Select dataset to read',([x[0] for x in list_datasets(engine_dataset)]))
-    read_title.header('Read datasets')
-
-    if st.button('Read dataframes'):
-        # Read datasets_db
-        df = read_dataset(dataset_to_read,engine_dataset)
-        st.write(df)
-    
-    # Line plot
-    if st.button('Visualize'):
-        df = read_dataset(dataset_to_read, engine_dataset)
-
-        # Line
-        st.subheader('Line Chart')
-        st.line_chart(df['value'])
-
-        # Bar
-        st.subheader('Bar Chart')
-        st.bar_chart(df['value'])
-
-except:
-    read_title.header('No datasets.')
-    st.write('Upload data to continue')
+if st.button('Save Transaction'):
+    write_tax_transaction(taxpayer_id, tax_category_id, date_id, amount, engine)
+    st.success(f"Tax transaction for Taxpayer ID **{taxpayer_id}** saved.")
