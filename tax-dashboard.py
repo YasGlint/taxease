@@ -175,14 +175,7 @@ with column_2:
             st.subheader('Dataframe')
             st.write(df)
             
-            # # Buttons for different plots
-            # if st.button("Show Line Chart"):
-            #     plots_.plot_line_chart(df)
-
-            # if st.button("Show Bar Chart"):
-            #     plots_.plot_bar_chart(df)
-
-            # if st.button("Show Scatter Plot"):
-            #     plots_.plot_scatter_chart(df)
+            # # Buttons for other plots
+            #
     except:
         pass
