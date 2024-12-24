@@ -1,54 +1,9 @@
 import pandas as pd
 import streamlit as st
 from sqlalchemy import create_engine, text
-from psycopg2 import OperationalError
-import matplotlib.pyplot as plt
-from datetime import datetime
-
 
 
 engine_dataset = create_engine("postgresql://postgres:spyder@localhost:5432/datasets_db")
-
-
-
-#### RECORDS DB
-# Query records from records_db
-def read_taxpayer_data(engine):
-    with engine.connect() as connection:
-        result = connection.execute(
-            text("SELECT * FROM taxpayers")
-        )
-        return pd.read_sql_query(result.first()[0], engine)
-    
-def read_tax_transaction_data(engine):
-    with engine.connect() as connection:
-        result = connection.execute(
-            text("SELECT * FROM tax_transactions")
-        )
-    return pd.read_sql_query(result.first()[0], engine)
-
-def read_specific_taxpayer(taxpayer_name, engine):
-    with engine.connect() as connection:
-        result = connection.execute(
-            text("SELECT * FROM taxpayers WHERE taxpayer_name = '{taxpayer_name}';")
-        )
-    return pd.read_sql_query(result.first()[0], engine)
-
-
-# Insert records into records_db
-def write_record_taxpayer(taxpayer_name, location, engine):
-    with engine.connect() as connection:
-        connection.execute(
-            text("INSERT INTO taxpayers (taxpayer_name, location) VALUES (:taxpayer_name, :location)"),
-            {"taxpayer_name": taxpayer_name, "location": location}
-        )
-
-def write_tax_transaction(taxpayer_id, tax_category_id, date_id, amount, engine):
-    with engine.connect() as connection:
-        connection.execute(
-            text("INSERT INTO tax_transactions (taxpayer_id, tax_category_id, date_id, amount) VALUES (:taxpayer_id, :tax_category_id, :date_id, :amount)"),
-            {"taxpayer_id": taxpayer_id, "tax_category_id": tax_category_id, "date_id": date_id, "amount": amount}
-        )
 
 
 #### DATASETS DB
@@ -73,7 +28,6 @@ def list_datasets(engine):
         return datasets.fetchall()
 
 
-
 # Streamlit UI
 st.set_page_config(
     page_title="Datasets Management", 
@@ -86,7 +40,7 @@ st.sidebar.success("📊  Datasets")
 # column_1, column_2 = st.columns(2)
 
 # with column_1:
-st.header('Save datasets')
+st.header('Add datasets')
 dataset = st.file_uploader('Please upload dataset')
 if dataset is not None:
     dataset = pd.read_csv(dataset)
@@ -103,7 +57,7 @@ try:
     read_title = st.empty()
     # List datasets_db
     dataset_to_read = st.selectbox('Select dataset to read',([x[0] for x in list_datasets(engine_dataset)]))
-    read_title.header('Read datasets')
+    read_title.header('Saved datasets')
 
     if st.button('Read dataframes'):
         # Read datasets_db

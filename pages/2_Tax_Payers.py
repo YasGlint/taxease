@@ -1,14 +1,11 @@
 import pandas as pd
 import streamlit as st
-from sqlalchemy import create_engine, text
-import matplotlib.pyplot as plt
-from datetime import datetime
+from sqlalchemy import text
+from Dashboard import engine
 
-
-engine = create_engine("postgresql://postgres:spyder@localhost:5432/records_db")
 
 ############# Functions
-# Write records
+# Write taxpayer records
 def write_record_taxpayer(taxpayer_name, location):
     with engine.connect() as conn:
         conn.execute(
@@ -23,15 +20,14 @@ def write_record_taxpayer(taxpayer_name, location):
     st.success(f"Taxpayer '{taxpayer_name}' from '{location}' has been added.")
 
 
-
+############# Streamlit UI
 st.set_page_config(
     page_title="Taxpayer Management", 
     layout="wide",
 )
+st.title("Taxpayer Management")
 st.sidebar.header("TaxEase")
 st.sidebar.success("🧑🏻  Tax Payers")
-
-st.title("Taxpayer Management")
 st.write("Manage taxpayer records.")
 
     
@@ -47,11 +43,11 @@ if st.button("Save Taxpayer"):
 
 ### Read tax payers
 ###################
-conn = st.connection("postgresql", type="sql")
-df = conn.query('SELECT * FROM taxpayers;', ttl="10m")
+read_conn = st.connection("postgresql", type="sql")
+df = read_conn.query('SELECT * FROM taxpayers;', ttl="10m")
 
-st.header("Current Taxpayers")
+st.header("Stored Taxpayers")
 st.write(df)
 
 if st.button('Reload'):
-    df = conn.query('SELECT * FROM taxpayers;')
+    df = read_conn.query('SELECT * FROM taxpayers;')

@@ -1,9 +1,6 @@
 import pandas as pd
 import streamlit as st
 from sqlalchemy import create_engine, text
-from psycopg2 import OperationalError
-import matplotlib.pyplot as plt
-from datetime import datetime
 
 
 engine = create_engine("postgresql://postgres:spyder@localhost:5432/records_db")
@@ -97,9 +94,6 @@ try:
     data_is_present = True
 except:
     pass
-
-
-
 
 
 col = st.columns((3, 4), gap='medium')
