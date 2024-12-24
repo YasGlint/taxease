@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 from sqlalchemy import create_engine, text
-from psycopg2 import OperationalError
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -56,4 +55,3 @@ st.write(df)
 
 if st.button('Reload'):
     df = conn.query('SELECT * FROM taxpayers;')
-

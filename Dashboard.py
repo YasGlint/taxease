@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 
+engine = create_engine("postgresql://postgres:spyder@localhost:5432/records_db")
 engine_dataset = create_engine("postgresql://postgres:spyder@localhost:5432/datasets_db")
 
 
