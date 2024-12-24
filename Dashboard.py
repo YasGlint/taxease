@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, text
 from psycopg2 import OperationalError
 import matplotlib.pyplot as plt
 from datetime import datetime
+import altair as alt
 
 
 engine = create_engine("postgresql://postgres:spyder@localhost:5432/records_db")
