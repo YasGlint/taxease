@@ -149,33 +149,3 @@ with column_1:
     if st.button('Save Transaction'):
         write_tax_transaction(taxpayer_id, tax_category_id, date_id, amount, engine)
         st.success(f"Tax transaction for Taxpayer ID **{taxpayer_id}** saved.")
-
-        
-with column_2:
-    st.header('Save datasets')
-    dataset = st.file_uploader('Please upload dataset')
-    if dataset is not None:
-        dataset = pd.read_csv(dataset)
-        dataset_name = st.text_input('Please enter name for dataset')
-        if st.button('Save dataset to database'):
-            # Write to datasets_db
-            write_dataset('%s' % (dataset_name),dataset,engine_dataset)
-            st.info('**%s** saved to database' % (dataset_name))
-
-    try:
-        read_title = st.empty()
-        # List datasets_db
-        dataset_to_read = st.selectbox('Select dataset to read',([x[0] for x in list_datasets(engine_dataset)]))
-        read_title.header('Read datasets')
-        if st.button('Read dataset'):
-            # Read datasets_db
-            df = read_dataset(dataset_to_read,engine_dataset)
-            st.subheader('Chart')
-            st.line_chart(df['value'])
-            st.subheader('Dataframe')
-            st.write(df)
-            
-            # # Buttons for other plots
-            #
-    except:
-        pass

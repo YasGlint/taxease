@@ -1,0 +1,3 @@
+1. Created multiple screens with a collapsible side-bar navigation for different kinds of tax categories
+2. Multiple kinds of plots are shown on the dashboard 
+3. 
