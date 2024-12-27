@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from sqlalchemy import create_engine, text
+import altair as alt
 
 
 engine = create_engine("postgresql://postgres:spyder@localhost:5432/records_db")
@@ -96,7 +97,7 @@ col = st.columns((3, 4), gap='medium')
 
 with col[0]:
     if data_exists:
-        dataset_to_read = st.selectbox(f'Reading dataset', dataset1)
+        dataset_to_read = st.selectbox(f'Select', dataset1)
         df = read_dataset(dataset_to_read, engine_dataset)
         st.dataframe(df.style.highlight_max(axis=0), use_container_width=True)
     else:
@@ -108,18 +109,73 @@ with col[1]:
         col = st.columns((4, 4))
         with col[0]:
             average_annual_target = round(df["Annual Target"].mean(), 2)
+            average_annual_target = f'{average_annual_target} M'
             st.metric("Average Annual Target", average_annual_target)
-            
+
         with col[1]:
-            sum_total_actual = round(df["Total Actual"].sum(), 2)
-            st.metric("Total amount", sum_total_actual)
+            total_amount = round(df["Total Actual"].mean(), 2)
+            total_amount = f'{total_amount} M'
+            st.metric("Average Total Amount", total_amount)
 
-        # Bar plot
-        st.subheader('Bar Chart')
-        st.bar_chart(df['Total Actual'])
+        pie = alt.Chart(df).mark_arc(innerRadius=50).encode(
+            theta='Annual Target:Q',
+            color='Tax Type:N',
+            tooltip=['Category:N', 'Value:Q']
+        )
+        st.altair_chart(pie)
+
+        
+    # # Line
+    # st.line_chart(df['Annual Target'])
+
+    # line = alt.Chart(df.reset_index()).mark_line().encode(
+    #     x='Year:O',
+    #     y='Annual Target:Q'
+    # )
+    # st.altair_chart(line, use_container_width=True)
 
 
-### Line plot
-if data_exists:
-    st.subheader('Line Chart')
-    st.line_chart(df['Tax Type'])
+
+
+# multiLine = alt.Chart(df).mark_line().encode(
+#     x='Year:O',
+#     y='Annual Target:Q',
+#     color='Year:N'
+# ).transform_fold(
+#     ['Annual Target', 'Amount'],
+#     as_=['variable', 'Value']
+# )
+# st.altair_chart(multiLine, use_container_width=True)
+
+
+# vegaline = alt.Chart(df).mark_line().encode(
+#     x='Year:O',
+#     y='Annual Target:Q'
+# ).interactive()
+# st.altair_chart(vegaline)
+
+
+# scatter = alt.Chart(df).mark_point().encode(
+#     x='Year:Q',
+#     y='Annual Target:Q',
+#     color='Year:N',
+#     tooltip=['Year', 'Annual Target', 'Year']
+# )
+# st.altair_chart(scatter)
+
+# heatmap = alt.Chart(df.reset_index()).mark_rect().encode(
+#     x='Annual Target:O',
+#     y='Year:O',
+#     color='Year:Q'
+# ).transform_fold(
+#     df.columns.tolist(), as_=['variable', 'value']
+# )
+# st.altair_chart(heatmap)
+
+
+# area = alt.Chart(df).mark_area().encode(
+#     x='Year:O',
+#     y='Annual Target:Q',
+#     color='Year:N'
+# )
+# st.altair_chart(area)

@@ -2,6 +2,8 @@ import pandas as pd
 import streamlit as st
 from sqlalchemy import create_engine, text
 from Dashboard import engine
+import altair as alt
+
 
 
 engine_dataset = create_engine("postgresql://postgres:spyder@localhost:5432/datasets_db")
@@ -114,23 +116,21 @@ try:
     dataset_to_read = st.selectbox('Select dataset to read',([x[0] for x in list_datasets(engine_dataset)]))
     read_title.header('Saved datasets')
 
-    if st.button('Process selected dataset'):
-        # Read dataset from datasets_db
-        df = read_dataset(dataset_to_read, engine_dataset)
-
-        # ETL to records_db
-        etl_to_records_db(df, engine)
-        st.success(f'Dataset **{dataset_to_read}** processed and loaded into records_db.')
-
-
     if st.button('Read dataframes'):
         # Read datasets_db
         df = read_dataset(dataset_to_read,engine_dataset)
         st.write(df)
     
-        # Line
-        st.subheader('Line Chart')
-        st.line_chart(df['Annual Target'])
+        
+        # Bar plot
+        bar = alt.Chart(df).mark_bar().encode(
+            x='Year:O',
+            y='Annual Target:Q',
+            color='Category:N'
+        )
+
+        st.altair_chart(bar)
+
 
         # Bar
         st.subheader('Bar Chart')
