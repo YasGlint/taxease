@@ -4,7 +4,7 @@ from sqlalchemy import text
 from Dashboard import engine
 
 
-############# Functions
+############# Function
 # Write taxpayer records
 def write_record_taxpayer(taxpayer_name, location):
     with engine.connect() as conn:
@@ -21,18 +21,13 @@ def write_record_taxpayer(taxpayer_name, location):
 
 
 ############# Streamlit UI
-st.set_page_config(
-    page_title="Taxpayer Management", 
-    layout="wide",
-)
 st.title("Taxpayer Management")
 st.sidebar.header("TaxEase")
-st.sidebar.success("🧑🏻  Tax Payers")
+st.sidebar.success("🧑🏻 Tax Payers")
 st.write("Manage taxpayer records.")
 
     
 # Add new taxpayer
-#####################
 st.header("Add Taxpayer")
 taxpayer_name = st.text_input("Enter taxpayer name")
 location = st.text_input("Enter location")
@@ -43,9 +38,16 @@ if st.button("Save Taxpayer"):
 
 ### Read tax payers
 ###################
-read_conn = st.connection("postgresql", type="sql")
-df = read_conn.query('SELECT * FROM taxpayers;', ttl="10m")
+# read_conn = st.connection("postgresql", type="sql")
+# df = read_conn.query('SELECT * FROM taxpayers;', ttl="10m")
 
+# st.header("Stored Taxpayers")
+# st.write(df)
+
+
+read_conn = engine.connect()
+
+df = pd.read_sql("SELECT * FROM taxpayers", read_conn)
 st.header("Stored Taxpayers")
 st.write(df)
 

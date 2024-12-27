@@ -1,13 +1,9 @@
 import pandas as pd
 import streamlit as st
-from sqlalchemy import create_engine, text
-import matplotlib.pyplot as plt
-from datetime import datetime
+from sqlalchemy import text
 from Dashboard import engine
 
-
-
-############# Functions
+############# Function
 # Write transactional records 
 def write_tax_transaction(taxpayer_id, tax_category_id, date_id, amount, engine):
     with engine.connect() as conn:
@@ -22,13 +18,9 @@ def write_tax_transaction(taxpayer_id, tax_category_id, date_id, amount, engine)
 
 
 ############# Streamlit UI
-st.set_page_config(
-    page_title="Tax Transactions", 
-    layout="wide",
-)
 st.title('Tax Transactions')
 st.sidebar.header("TaxEase")
-st.sidebar.success("💰  Tax Transactions")
+st.sidebar.success("💰 Tax Transactions")
 
 
 # Add new tax transaction
@@ -44,11 +36,9 @@ if st.button('Save Transaction'):
 
 
 
-### Read tax transactions
-###################
-read_conn = st.connection("postgresql", type="sql")
-df = read_conn.query('SELECT * FROM tax_transactions;', ttl="10m")
+read_conn = engine.connect()
 
+df = pd.read_sql("SELECT * FROM tax_transactions", read_conn)
 st.header("Stored Tax Transactions")
 st.write(df)
 

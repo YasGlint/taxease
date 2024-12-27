@@ -36,12 +36,20 @@ Our Implementation:
 
 
 
+# How to run:
+1. Install all requirements
+2. Create PostgreSQL databases: datasets_db and records_db using the sql templates in /data
+3. Execute 'Streamlit run Dashboard.py' and navigate to the link.
+Then in the interface, import the csv file in /data
+
+
+
 # TODO:  
-  i. Perform data cleaning and transformation before loading.
+  i. (In process) Perform data cleaning and transformation before loading.
   
   ii. Expand Analytics: Integrate an OLAP tool or library to perform advanced aggregations.
   
-  iii. Add more visualizations in Streamlit, such as bar charts, heatmaps, or dashboards.
+  iii. (In process) Add more visualizations, such as bar charts, heatmaps, or dashboards.
   
   iv. Integrate Data Sources:
   Include APIs, third-party databases, or other file formats in the extract step.
