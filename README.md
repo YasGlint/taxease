@@ -38,9 +38,13 @@ Our Implementation:
 
 # How to run:
 1. Install all requirements
-2. Create PostgreSQL databases: datasets_db and records_db using the sql templates in /data
-3. Execute 'Streamlit run Dashboard.py' and navigate to the link.
-Then in the interface, import the csv file in /data
+2. Create a PostgreSQL user using the credentials at /.streamlit/secrets.toml
+3. Create 2 PostgreSQL databases: 'datasets_db' and 'records_db' using the sql templates in /sql
+4. Execute 'Streamlit run Dashboard.py' and navigate to the link.
+
+Data was extracted from https://www.firs.gov.ng/tax-resources-statistics by copy-paste into the /ETL/source folder, into text files each from years 2015-2023.
+
+The files in the entire /ETL/source can be extracted into a single file (/ETL/extract.py) and transformed to fit the schema (/ETL/transform.py). The output is saved to /ETL/output/FIRS_statistics.csv and can be loaded into the warehouse.
 
 
 
