@@ -5,7 +5,6 @@ from Dashboard import engine
 import altair as alt
 
 
-
 engine_dataset = create_engine("postgresql://postgres:spyder@localhost:5432/datasets_db")
 
 #### DATASETS DB
@@ -20,6 +19,14 @@ def read_dataset(name, engine):
     except:
         dataset = pd.DataFrame([])
     return dataset
+
+
+# Function to drop a table
+def drop_dataset(engine, table_name):
+    with engine.connect() as connection:
+        connection.execute(text(f"DROP TABLE IF EXISTS {table_name};"))
+        connection.commit()
+
 
 # Query
 def list_datasets(engine):
@@ -116,25 +123,19 @@ try:
     dataset_to_read = st.selectbox('Select dataset to read',([x[0] for x in list_datasets(engine_dataset)]))
     read_title.header('Saved datasets')
 
-    if st.button('Read dataframes'):
-        # Read datasets_db
+    # Drop the selected dataset
+    if dataset_to_read:
+        if st.button(f"Drop '{dataset_to_read}'"):
+            drop_dataset(engine_dataset, dataset_to_read)
+            st.success(f"Dataset '{dataset_to_read}' has been dropped.")
+            st.experimental_rerun()
+
+        # Read
+        st.write('Preview')
         df = read_dataset(dataset_to_read,engine_dataset)
-        st.write(df)
-    
-        
-        # Bar plot
-        bar = alt.Chart(df).mark_bar().encode(
-            x='Year:O',
-            y='Annual Target:Q',
-            color='Category:N'
-        )
+        preview = df.head()
+        st.write(preview)
 
-        st.altair_chart(bar)
-
-
-        # Bar
-        st.subheader('Bar Chart')
-        st.bar_chart(df['value'])
 
 except:
     read_title.header('No datasets available.')

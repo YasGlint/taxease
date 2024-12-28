@@ -99,7 +99,7 @@ with col[0]:
     if data_exists:
         dataset_to_read = st.selectbox(f'Select', dataset1)
         df = read_dataset(dataset_to_read, engine_dataset)
-        st.dataframe(df.style.highlight_max(axis=0), use_container_width=True)
+        st.dataframe(df, use_container_width=True)
     else:
         st.write("No datasets")
 
@@ -115,26 +115,16 @@ with col[1]:
         with col[1]:
             total_amount = round(df["Total Actual"].mean(), 2)
             total_amount = f'{total_amount} M'
-            st.metric("Average Total Amount", total_amount)
+            st.metric("Total Amount", total_amount)
 
         pie = alt.Chart(df).mark_arc(innerRadius=50).encode(
             theta='Annual Target:Q',
             color='Tax Type:N',
-            tooltip=['Category:N', 'Value:Q']
+            tooltip=['Tax Type:N', 'Annual Target:Q']
         )
         st.altair_chart(pie)
 
         
-    # # Line
-    # st.line_chart(df['Annual Target'])
-
-    # line = alt.Chart(df.reset_index()).mark_line().encode(
-    #     x='Year:O',
-    #     y='Annual Target:Q'
-    # )
-    # st.altair_chart(line, use_container_width=True)
-
-
 
 
 # multiLine = alt.Chart(df).mark_line().encode(
