@@ -96,7 +96,7 @@ def etl_to_records_db(df, engine):
 
 
 # Streamlit UI
-st.title("Datasets Management")
+st.title("Data Sources")
 st.sidebar.header("TaxEase")
 st.sidebar.success("📊  Datasets")
 # column_1, column_2 = st.columns(2)
