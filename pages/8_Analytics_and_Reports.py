@@ -2,16 +2,17 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 
-from Dashboard import list_datasets, engine_dataset, read_dataset
+from sql.sql_ops import engine
 
 
-## Attempt to read datasets
-try:
-    dataset1 = ([x[0] for x in list_datasets(engine_dataset)])
-    data_exists = dataset1
-except:
-    pass
+read_conn = engine.connect()
 
+df_tax_transactions = pd.read_sql(f"SELECT * FROM tax_transactions", read_conn)
+df_tax_categories = pd.read_sql(f"SELECT * FROM tax_categories", read_conn)
+df_dates = pd.read_sql(f"SELECT * FROM dates", read_conn)
+
+
+# Streamlit UI
 st.set_page_config(
     page_title="Analytics and Reports", 
     layout="wide",
@@ -21,51 +22,84 @@ st.title("Analytics and Reports")
 st.sidebar.success("📈 Analytics")
 
 
-if not data_exists:
-    st.write("No datasets")
-else:
-    dataset_to_read = st.selectbox(f'Reading dataset', dataset1)
-    df = read_dataset(dataset_to_read, engine_dataset)
 
-    tab1, tab2, tab3, tab4 = st.tabs(['Dataframe', 'Charts', 'Faceted timeline', 'Trends & Reports'])
 
+
+
+
+# Tabs
+tab1, tab2, tab3, tab4 = st.tabs(['Dataframes', 'Charts', 'Faceted timeline', 'Trends & Reports'])
+
+# Dataframes tab
+with tab1:
+    st.header('Tax Transactions')
+    st.dataframe(df_tax_transactions, use_container_width=True)
+
+    df_col1, df_col2 = st.columns(2)
+
+    with df_col1:
+        st.header('Tax Categories')
+        st.dataframe(df_tax_categories['tax_category_name'], width=600)
+
+    with df_col2:
+        st.header('Dates (Years)')
+        st.dataframe(df_dates['year'], width=300)
+
+
+# Charts tab
+with tab2:
+    df_tab1, df_tab2, df_tab3 = st.tabs(['Area', 'Line', 'Scatter'])
+
+    with df_tab1:
+        st.area_chart(df_tax_transactions)
+
+    with df_tab2:
+        st.line_chart(df_tax_transactions)
+
+    with df_tab3:
+        st.scatter_chart(df_tax_transactions)
+    
+
+# Faceted timeline
+with tab3:
+    st.write('In the works...')
+    # faceted = alt.Chart(df_tax_transactions).mark_line().encode(
+    #     x='amount:O',
+    #     y='annual_target:Q',
+    #     color='amount:N'
+    # ).facet(
+    #     column='amount:N'
+    # )
+    # st.altair_chart(faceted)
+
+
+with tab4:
+    tab1, tab2 = st.tabs(['Insights', 'Visualizations'])
     with tab1:
-        st.dataframe(df, use_container_width=True)
+        # Summary statistics for targets and actuals
+        st.header("Summary statistics for Annual targets and actuals amounts collected")
+        st.dataframe(df_tax_transactions[['annual_target', 'amount']].describe(), use_container_width=True)
+
+        # Top-performing tax types
+        st.header("Top-performing tax types")
+        top_tax_types = df_tax_transactions.groupby('tax_category_id')['amount'].sum().sort_values(ascending=False)
+        st.dataframe(top_tax_types, use_container_width=True)
+
+        # Annual trends
+        st.header("Annual Trends:")
+        annual_trends = df_tax_transactions.groupby('date_id')[['annual_target', 'amount']].sum()
+        st.dataframe(annual_trends, use_container_width=True)
 
     with tab2:
-        ctab1, ctab2 = st.tabs(['Stacked chart', 'Line'])
-
-        with ctab1:
-            stacked = alt.Chart(df).transform_fold(
-                ['Annual Target', 'Total Actual'],
-                as_=['Type', 'Value']
-            ).mark_bar().encode(
-                x='Tax Type:N',
-                y='Value:Q',
-                color='Type:N',
-                tooltip=['Tax Type:N', 'Type:N', 'Value:Q']
-            )
-            st.altair_chart(stacked, use_container_width=True)
-
-        with ctab2:
-            # Line
-            st.line_chart(df['Annual Target'])
-
-            line = alt.Chart(df.reset_index()).mark_line().encode(
-                x='Year:O',
-                y='Annual Target:Q'
-            )
-            st.altair_chart(line, use_container_width=True)
-
-    with tab3:
-        faceted = alt.Chart(df).mark_line().encode(
-            x='Year:O',
-            y='Annual Target:Q',
-            color='Tax Type:N'
-        ).facet(
-            column='Tax Type:N'
+        # Annual Achievement Rate Distribution
+        st.header("Annual Achievement Rates by Tax Type")
+        line = alt.Chart(df_tax_transactions.reset_index()).mark_line().encode(
+            x='date_id:O',
+            y='annual_target:Q'
         )
-        st.altair_chart(faceted)
+        st.altair_chart(line, use_container_width=True)
 
-    with tab4:
-        st.write('In progress')
+        # Top Tax Types (Total Actual)
+        st.header("Annual Achievement Rates by Tax Type")
+
+        st.line_chart(top_tax_types[:10])

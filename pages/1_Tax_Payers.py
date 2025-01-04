@@ -1,24 +1,10 @@
 import pandas as pd
 import streamlit as st
 from sqlalchemy import text
-from Dashboard import engine
+
+from sql.sql_ops import engine, write_record_taxpayer
 import datetime
 
-
-############# Function
-# Write taxpayer records
-def write_record_taxpayer(taxpayer_name, location):
-    with engine.connect() as conn:
-        conn.execute(
-            text("""
-            INSERT INTO taxpayers (taxpayer_name, location) 
-            VALUES (:taxpayer_name, :location)
-            """),
-            {"taxpayer_name": taxpayer_name, "location": location}
-        )
-        conn.commit()
-        conn.close()
-    st.success(f"Taxpayer '{taxpayer_name}' from '{location}' has been added.")
 
 
 ############# Streamlit UI
@@ -29,32 +15,34 @@ st.set_page_config(
 st.title("Tax Payers")
 st.sidebar.header("TaxEase")
 st.sidebar.success("🧑🏻 Tax Payers")
-st.write(datetime.date.today())
 
-    
-# Add new taxpayer
-st.header("Add Taxpayer")
-taxpayer_name = st.text_input("Enter taxpayer name")
-location = st.text_input("Enter location")
-
-if st.button("Save Taxpayer"):
-    write_record_taxpayer(taxpayer_name, location)
+date = datetime.date(2025, 1, 3)
+formatted_date = date.strftime("%a %-d %b , %Y")
+st.write(formatted_date)
 
 
-### Read tax payers
-###################
-# read_conn = st.connection("postgresql", type="sql")
-# df = read_conn.query('SELECT * FROM taxpayers;', ttl="10m")
+df_col1, df_col2 = st.columns(2)
 
-# st.header("Stored Taxpayers")
-# st.write(df)
+with df_col1:
+    # Add new taxpayer
+    st.header("Add Taxpayer")
+    taxpayer_name = st.text_input("Enter taxpayer name")
+    location = st.text_input("Enter location")
+
+    if st.button("Save Taxpayer"):
+        write_record_taxpayer(taxpayer_name, location)
 
 
-read_conn = engine.connect()
+with df_col2:
+    read_conn = engine.connect()
 
-df = pd.read_sql("SELECT * FROM taxpayers", read_conn)
-st.header("Stored Taxpayers")
-st.write(df)
+    try:
+        df = pd.read_sql("SELECT * FROM taxpayers", read_conn)
+        st.write(df)
+        
+        if st.button('Reload'):
+            df = read_conn.query('SELECT * FROM taxpayers;')
 
-if st.button('Reload'):
-    df = read_conn.query('SELECT * FROM taxpayers;')
+    except:
+        st.header("Stored Taxpayers")
+        st.write("No tax payer data")

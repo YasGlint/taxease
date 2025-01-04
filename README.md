@@ -49,17 +49,17 @@ The files in the entire /ETL/source can be extracted into a single file (/ETL/ex
 
 
 # TODO:  
-  i. (In process) Perform data cleaning and transformation before loading.
+  i. (Done) Perform data cleaning and transformation before loading.
   
   ii. Expand Analytics: Integrate an OLAP tool or library to perform advanced aggregations.
   
-  iii. (In process) Add more visualizations, such as bar charts, heatmaps, or dashboards.
+  iii. (Almost done) Add more visualizations, such as bar charts, heatmaps, or dashboards.
   
-  iv. Integrate Data Sources:
+  iv. (Doing) Perform EDA, analytics and predictions
+  
+  v. Integrate Data Sources:
   Include APIs, third-party databases, or other file formats in the extract step.
   Merge datasets from multiple sources into a unified data model.
-  
-  v. Data Quality: Implement data validation during the Transform step to ensure the quality and consistency of uploaded datasets.
   
   vi. Optimize Queries:
   Use indexes and query optimization for the PostgreSQL database to handle large datasets efficiently.
