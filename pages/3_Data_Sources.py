@@ -19,7 +19,7 @@ col1, col2 = st.columns(2)
 
 
 with col1:
-    st.write("Staging area for preprocessing datasets before recording")
+    st.write("(Staging area for preprocessing datasets before recording)")
     st.header('Add datasets')
     dataset = st.file_uploader('Please upload dataset')
     if dataset is not None:

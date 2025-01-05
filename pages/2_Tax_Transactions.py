@@ -29,7 +29,7 @@ with col1:
 
 
 with col2:
-    st.header("Existing Tax Transactions")
+    st.header("Stored Tax Transactions")
 
     read_conn = engine.connect()
     df = pd.read_sql("SELECT * FROM tax_transactions", read_conn)
